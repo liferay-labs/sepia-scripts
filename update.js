@@ -3,7 +3,6 @@
 var chalk = require('chalk');
 var checkRequirement = require('./util/check-requirement.js');
 var executer = require('./util/executer.js');
-var faroDirs = require('./util/faro-dirs.js');
 var fs = require('fs');
 var program = require('commander');
 require('shelljs/global');
@@ -12,48 +11,18 @@ require('shelljs/global');
 
 program
 .version('0.0.1')
-.option('-k, --keepLocalImages', 'if present, the faro docker images in the local repository will not be updated')
-.option('-r, --repo [value]', 'Repository name without prefix. e.g. site-contacts, connector-assets...')
+.option('-k, --keepLocalImages', 'if present, the docker images in the local repository will not be updated')
 .parse(process.argv);
-
-var defaultBranch = '7.0.x-private';
-
-var repositories = [];
-
-if (program.repo) {
-	var fullRepoName = program.repo;
-
-	if (!fullRepoName.startsWith('com-liferay-osb-faro-')) {
-		fullRepoName = 'com-liferay-osb-faro-' + program.repo;
-	}
-
-	repositories.push(fullRepoName);
-
-	console.log(chalk.green('Updating repo: ' + fullRepoName));
-}
-else {
-	repositories = [
-		'com-liferay-osb-faro-build-private',
-		'com-liferay-faro-connector-assets-private',
-		'com-liferay-faro-connector-contacts-private',
-		'com-liferay-osb-faro-engine-assets-private',
-		'com-liferay-osb-faro-engine-contacts-private',
-		'com-liferay-osb-faro-engine-domains-proxy-private',
-		'com-liferay-osb-faro-engine-domains-validation-private',
-		'com-liferay-osb-faro-site-private',
-		'com-liferay-osb-faro-site-assets-private',
-		'com-liferay-osb-faro-site-campaigns-private',
-		'com-liferay-osb-faro-site-contacts-private',
-		'com-liferay-osb-faro-site-settings-private',
-		'com-liferay-osb-faro-site-touchpoints-private'
-	];
-
-	console.log(chalk.bgGreen.black(' * Updating all FARO repositories:'));
-}
 
 // Validate parameters and system requirements
 
 checkRequirements();
+
+var defaultBranch = '7.0.x-private';
+
+var config = JSON.parse(fs.readFileSync('.sepia.json', 'utf8'));
+
+var repositories = config.repositories || [];
 
 for (var i = 0; i < repositories.length; i++) {
 	var repo = repositories[i];
@@ -62,20 +31,19 @@ for (var i = 0; i < repositories.length; i++) {
 }
 
 if (program.keepLocalImages) {
-	console.log(chalk.blue('Keeping FARO docker images in local repository'));
+	console.log(chalk.blue('Keeping docker images in local repository'));
 }
 else {
-	console.log('');
-	console.log(chalk.bgBlue.black(' * Updating FARO docker images'));
+	console.log(chalk.bgBlue.black(' * Updating docker images'));
+
+	var dockerImages = config.dockerImages || [];
 
 	// If the images haven't changed, they are cached locally by docker engine
 	// and they are not downloaded again
 
-	downloadImage('liferay/com-liferay-osb-faro-engine-assets-private:latest');
-	downloadImage('liferay/com-liferay-osb-faro-site-private:latest');
-	downloadImage('liferay/com-liferay-osb-faro-engine-domains-validation-private:latest');
-	downloadImage('liferay/com-liferay-osb-faro-engine-domains-proxy-private:latest');
-	downloadImage('mdelapenya/liferay-portal:7-ce-ga3-tomcat-hsql');
+	for (var i = 0; i < dockerImages.length; i++) {
+		downloadImage(dockerImages[i]);
+	}
 }
 
 // This is needed everytime there are changes in the dependencies for the scripts
@@ -98,10 +66,8 @@ function downloadImage(image) {
 function updateRepo(repo) {
 	var originalLocation = pwd();
 
-	var repoLocation = faroDirs.getFaroHomeDir() + repo;
-
-	if (fs.existsSync(repoLocation)) {
-		cd(repoLocation);
+	if (fs.existsSync(repo)) {
+		cd(repo);
 
 		executer.spawnSync('git', ['add', '.']); // Avoid deleting not staged files
 		executer.spawnSync('git', ['clean', '-df']); // Clean old directories
