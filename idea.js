@@ -17,7 +17,7 @@ checkRequirements();
 
 var config = JSON.parse(fs.readFileSync('.sepia.json', 'utf8'));
 
-var repositories = config.repositories;
+var repositories = config.repositories || [];
 
 for (var i = 0; i < repositories.length; i++) {
 	var repo = repositories[i];
