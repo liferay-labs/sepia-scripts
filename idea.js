@@ -3,7 +3,7 @@
 var checkRequirement = require('./util/check-requirement.js');
 var chalk = require('chalk');
 var executer = require('./util/executer.js');
-var faroDirs = require('./util/faro-dirs.js');
+var fs = require('fs');
 var program = require('commander');
 require('shelljs/global');
 
@@ -15,20 +15,9 @@ program
 
 checkRequirements();
 
-var repositories = [
-		'com-liferay-faro-connector-assets-private',
-		'com-liferay-faro-connector-contacts-private',
-		'com-liferay-osb-faro-engine-assets-private',
-		'com-liferay-osb-faro-engine-contacts-private',
-		'com-liferay-osb-faro-engine-domains-proxy-private',
-		'com-liferay-osb-faro-engine-domains-validation-private',
-		'com-liferay-osb-faro-site-private',
-		'com-liferay-osb-faro-site-assets-private',
-		'com-liferay-osb-faro-site-campaigns-private',
-		'com-liferay-osb-faro-site-contacts-private',
-		'com-liferay-osb-faro-site-settings-private',
-		'com-liferay-osb-faro-site-touchpoints-private'
-	];
+var config = JSON.parse(fs.readFileSync('.sepia.json', 'utf8'));
+
+var repositories = config.repositories;
 
 for (var i = 0; i < repositories.length; i++) {
 	var repo = repositories[i];
@@ -38,7 +27,7 @@ for (var i = 0; i < repositories.length; i++) {
 
 console.log(chalk.blue('Generating modules.xml file for the project...'));
 
-executer.spawnSync('./util/ideactl.py', ['--src', faroDirs.getFaroHomeDir(), '--project-file', '../.idea/modules.xml']);
+executer.spawnSync('./util/ideactl.py', ['--src', '.', '--project-file', '.idea/modules.xml', '--namespace', config.namespace]);
 
 function checkRequirements() {
 	checkRequirement.check('gradle');
@@ -48,7 +37,7 @@ function checkRequirements() {
 function generateImlFiles(repo) {
 	var originalLocation = pwd();
 
-	cd(faroDirs.getFaroHomeDir() + repo);
+	cd(repo);
 
 	console.log(chalk.blue('Generating .iml files for: ' + repo));
 

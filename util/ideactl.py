@@ -121,6 +121,12 @@ def parse_cmdline():
     )
 
     parser.add_argument(
+        '--namespace',
+        dest='namespace',
+        help='namespace of the project subprojects e.g. portal, faro...'
+    )
+
+    parser.add_argument(
         '--dwim',
         action='store_true',
         dest='dwim',
@@ -138,11 +144,11 @@ def module_conf(pfile, fname):
     # Use dropwhile in the future
 
     parts = []
-    faroFound = False
+    namespaceFound = False
     for part in fname.split('/'):
-        if part == 'faro':
-            faroFound = True
-        elif faroFound:
+        if part == opts.namespace:
+            namespaceFound = True
+        elif namespaceFound:
             parts.append(part)
 
     group = '/'.join(parts[0:-2])
