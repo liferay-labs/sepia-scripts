@@ -3,7 +3,6 @@
 var chalk = require('chalk');
 var checkRequirement = require('./util/check-requirement.js');
 var executer = require('./util/executer.js');
-var faroDirs = require('./util/faro-dirs.js');
 var fs = require('fs');
 var program = require('commander');
 require('shelljs/global');
@@ -22,25 +21,14 @@ checkRequirements();
 
 console.log(chalk.blue('Cloning all repos.'));
 
-var repositories = [
-		'com-liferay-faro-connector-assets-private',
-		'com-liferay-faro-connector-contacts-private',
-		'com-liferay-osb-faro-engine-assets-private',
-		'com-liferay-osb-faro-engine-contacts-private',
-		'com-liferay-osb-faro-engine-domains-proxy-private',
-		'com-liferay-osb-faro-engine-domains-validation-private',
-		'com-liferay-osb-faro-site-private',
-		'com-liferay-osb-faro-site-assets-private',
-		'com-liferay-osb-faro-site-campaigns-private',
-		'com-liferay-osb-faro-site-contacts-private',
-		'com-liferay-osb-faro-site-settings-private',
-		'com-liferay-osb-faro-site-touchpoints-private'
-	];
+var config = JSON.parse(fs.readFileSync('.sepia.json', 'utf8'));
+
+var repositories = config.repositories || [];
 
 for (var i = 0; i < repositories.length; i++) {
 	var repo = repositories[i];
 
-	if (!exists(repo)) {
+	if (!fs.existsSync(repo)) {
 		console.error(chalk.blue('Cloning ' + repo));
 
 		cloneRepo(repo);
@@ -54,15 +42,11 @@ for (var i = 0; i < repositories.length; i++) {
 
 console.log(chalk.blue('Pulling docker images.'));
 
-downloadImage('liferay/com-liferay-osb-faro-engine-assets-private:latest');
-downloadImage('liferay/com-liferay-osb-faro-site-private:latest');
-downloadImage('liferay/com-liferay-osb-faro-engine-domains-validation-private:latest');
-downloadImage('liferay/com-liferay-osb-faro-engine-domains-proxy-private:latest');
-downloadImage('liferay/liferay-de:20170703073124007430605-db');
+var dockerImages = config.dockerImages || [];
 
-// Create Deployment Folder
-
-faroDirs.checkDeployDir();
+for (var i = 0; i < dockerImages.length; i++) {
+	downloadImage(dockerImages[i]);
+}
 
 function downloadImage(image) {
 	console.log(chalk.blue('Pulling image ' + image + ' from DockerHub.'));
@@ -74,24 +58,12 @@ function downloadImage(image) {
 	executer.spawnSync('docker', ['pull', image], options);
 }
 
-function exists(repo) {
-	var repoLocation = faroDirs.getFaroHomeDir() + repo;
-
-	return fs.existsSync(repoLocation);
-}
-
 function cloneRepo(repo) {
-	var originalLocation = pwd();
-
-	cd(faroDirs.getFaroHomeDir());
-
 	var options = {
 		stdio: 'inherit'
 	};
 
 	executer.spawnSync('git', ['clone', 'git@github.com:liferay/' + repo + '.git'], options);
-
-	cd(originalLocation);
 }
 
 function checkRequirements() {
