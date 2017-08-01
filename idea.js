@@ -26,7 +26,11 @@ for (var i = 0; i < repositories.length; i++) {
 
 console.log(chalk.blue('Generating modules.xml file for the project...'));
 
-executer.spawnSync('./util/ideactl.py', ['--src', '.', '--project-file', '.idea/modules.xml', '--namespace', config.get('namespace')]);
+var options = {
+    stdio: 'inherit'
+};
+
+executer.spawnSync(__dirname + '/util/ideactl.py', ['--src', '.', '--project-file', '.idea/modules.xml', '--namespace', config.get('namespace')], options);
 
 function checkRequirements() {
 	checkRequirement.check('gradle');

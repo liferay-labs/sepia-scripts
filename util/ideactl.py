@@ -216,6 +216,8 @@ if __name__ == "__main__":
         src = os.path.abspath(opts.src)
 
         for fn in walk(src, keep=is_iml, recur=negate(is_ignorable)):
+            print ("Including module: " + fn)
+
             if opts.iml:
                 n = fix_iml(fn)
 
