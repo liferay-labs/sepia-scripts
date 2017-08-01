@@ -2,6 +2,7 @@
 
 var chalk = require('chalk');
 var checkRequirement = require('./util/check-requirement.js');
+var config = require('./util/config.js');
 var executer = require('./util/executer.js');
 var fs = require('fs');
 var program = require('commander');
@@ -20,9 +21,9 @@ checkRequirements();
 
 var defaultBranch = '7.0.x-private';
 
-var config = JSON.parse(fs.readFileSync('.sepia.json', 'utf8'));
+var repositories = config.get('repositories') || [];
 
-var repositories = config.repositories || [];
+console.log(chalk.bgGreen.black(' * Updating repositories:'));
 
 for (var i = 0; i < repositories.length; i++) {
 	var repo = repositories[i];
@@ -36,7 +37,7 @@ if (program.keepLocalImages) {
 else {
 	console.log(chalk.bgBlue.black(' * Updating docker images'));
 
-	var dockerImages = config.dockerImages || [];
+	var dockerImages = config.get('dockerImages') || [];
 
 	// If the images haven't changed, they are cached locally by docker engine
 	// and they are not downloaded again
@@ -45,10 +46,6 @@ else {
 		downloadImage(dockerImages[i]);
 	}
 }
-
-// This is needed everytime there are changes in the dependencies for the scripts
-
-executer.spawnSync('npm', ['install']);
 
 // This ended OK
 process.exit(0);
@@ -202,6 +199,7 @@ function checkRequirements() {
 	checkRequirement.check('docker');
 	checkRequirement.check('git');
 	checkRequirement.check('npm');
+	config.check();
 }
 
 function removeImage(imageName) {

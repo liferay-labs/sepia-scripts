@@ -2,6 +2,7 @@
 
 var chalk = require('chalk');
 var checkRequirement = require('./util/check-requirement.js');
+var config = require('./util/config.js');
 var executer = require('./util/executer.js');
 var fs = require('fs');
 var program = require('commander');
@@ -21,9 +22,7 @@ checkRequirements();
 
 console.log(chalk.blue('Cloning all repos.'));
 
-var config = JSON.parse(fs.readFileSync('.sepia.json', 'utf8'));
-
-var repositories = config.repositories || [];
+var repositories = config.get('repositories') || [];
 
 for (var i = 0; i < repositories.length; i++) {
 	var repo = repositories[i];
@@ -42,7 +41,7 @@ for (var i = 0; i < repositories.length; i++) {
 
 console.log(chalk.blue('Pulling docker images.'));
 
-var dockerImages = config.dockerImages || [];
+var dockerImages = config.get('dockerImages') || [];
 
 for (var i = 0; i < dockerImages.length; i++) {
 	downloadImage(dockerImages[i]);
@@ -69,4 +68,5 @@ function cloneRepo(repo) {
 function checkRequirements() {
 	checkRequirement.check('docker');
 	checkRequirement.check('git');
+	config.check();
 }
