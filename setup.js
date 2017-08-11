@@ -62,7 +62,7 @@ function cloneRepo(repo) {
 		stdio: 'inherit'
 	};
 
-	executer.spawnSync('git', ['clone', 'git@github.com:liferay/' + repo + '.git'], options);
+	executer.spawnSync('git', ['clone', 'git@github.com:' + repo + '.git'], options);
 }
 
 function checkRequirements() {
