@@ -27,7 +27,9 @@ var repositories = config.get('repositories') || [];
 for (var i = 0; i < repositories.length; i++) {
 	var repo = repositories[i];
 
-	if (!fs.existsSync(repo)) {
+	var repoName = repo.split("/")[1];
+
+	if (!fs.existsSync(repoName)) {
 		console.error(chalk.blue('Cloning ' + repo));
 
 		cloneRepo(repo);

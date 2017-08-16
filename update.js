@@ -63,8 +63,10 @@ function downloadImage(image) {
 function updateRepo(repo) {
 	var originalLocation = pwd();
 
-	if (fs.existsSync(repo)) {
-		cd(repo);
+	var repoName = repo.split("/")[1];
+
+	if (fs.existsSync(repoName)) {
+		cd(repoName);
 
 		executer.spawnSync('git', ['add', '.']); // Avoid deleting not staged files
 		executer.spawnSync('git', ['clean', '-df']); // Clean old directories

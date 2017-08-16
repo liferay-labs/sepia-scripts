@@ -21,7 +21,9 @@ var repositories = config.get('repositories') || [];
 for (var i = 0; i < repositories.length; i++) {
 	var repo = repositories[i];
 
-	generateImlFiles(repo);
+	var repoName = repo.split("/")[1];
+
+	generateImlFiles(repoName);
 }
 
 console.log(chalk.blue('Generating modules.xml file for the project...'));
